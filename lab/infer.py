@@ -26,11 +26,20 @@ def load_model(adapter=None, extra=None, model_id=MODEL_ID):
     quant = BitsAndBytesConfig(
         load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.float16,
         bnb_4bit_use_double_quant=True,
-        # ViT (gồm cả projector merger/deepstack) và lm_head giữ fp16: E2/E3 cần huấn luyện đầy đủ merger
-        llm_int8_skip_modules=["visual", "lm_head"],
+        # ViT (gồm cả projector merger/deepstack) và lm_head giữ fp16: E2/E3 cần huấn luyện đầy đủ merger.
+        # transformers 5.x so khớp bằng re.match (neo ở ĐẦU tên module), nên "visual" không khớp
+        # "model.visual.blocks..." -> ViT bị lượng tử hoá âm thầm. Phải ghi đủ tiền tố "model.visual".
+        llm_int8_skip_modules=["model.visual", "lm_head"],
     )
     model = Qwen3VLForConditionalGeneration.from_pretrained(
         model_id, quantization_config=quant, dtype=torch.float16, device_map={"": 0})
+    import bitsandbytes as bnb
+    q_vis = [n for n, m in model.named_modules() if "visual" in n and isinstance(m, bnb.nn.Linear4bit)]
+    q_llm = sum(isinstance(m, bnb.nn.Linear4bit) for n, m in model.named_modules() if "language_model" in n)
+    if q_vis or not q_llm:
+        raise RuntimeError(f"cấu hình lượng tử sai: {len(q_vis)} Linear4bit trong visual (phải 0), "
+                           f"{q_llm} trong language_model (phải > 0)")
+    print(f"4-bit: {q_llm} Linear4bit trong LLM, visual + lm_head giữ fp16", flush=True)
     if adapter:
         from peft import PeftModel
         model = PeftModel.from_pretrained(model, adapter)
