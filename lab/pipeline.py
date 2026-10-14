@@ -18,12 +18,12 @@ EXPERIMENTS = {
     "e1": ("configs/e1.yaml", [], []),
     "e2": ("configs/e2.yaml", [], []),
     "e3": ("configs/e3.yaml", [], []),
-    # E4: đổi đúng MỘT biến so với setup tốt nhất. Sau Version #1, E2 (F1 0.327) > E1 (0.273) nên gốc là E2.
-    # data_size: giá trị 1.0 chính là E2 (đã chạy), chỉ cần chạy thêm 0.1.
-    "e4_data_0.1": ("configs/e2.yaml", ["--train-fraction", "0.1"], []),
-    "e4_rank_4": ("configs/e2.yaml", ["--r", "4"], []),
-    "e4_rank_64": ("configs/e2.yaml", ["--r", "64"], []),
-    "e4_coord_pixel": ("configs/e2.yaml", ["--coord", "pixel"], ["--coord", "pixel"]),
+    # E4: đổi đúng MỘT biến so với setup tốt nhất = E3 (F1 0.464). data_size 1.0 chính là E3 (chấm lại e3.jsonl).
+    # Lần E4 đầu (gốc E2, khi E3 chưa có) được lưu ở report/e4_base_e2/ để so sánh.
+    "e4_data_0.1": ("configs/e3.yaml", ["--train-fraction", "0.1"], []),
+    "e4_rank_4": ("configs/e3.yaml", ["--r", "4"], []),
+    "e4_rank_64": ("configs/e3.yaml", ["--r", "64"], []),
+    "e4_coord_pixel": ("configs/e3.yaml", ["--coord", "pixel"], ["--coord", "pixel"]),
 }
 
 
